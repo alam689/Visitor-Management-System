@@ -24,7 +24,28 @@ npm install
 npm run dev
 ```
 
-`npm run build` produces a static bundle in `dist/`, `npm run preview` serves it.
+`npm run build` produces a static bundle in `dist/`, `npm run preview` serves it
+exactly as GitHub Pages does — under the `/Visitor-Management-System/` base path.
+
+## Deploying
+
+Live at **https://alam689.github.io/Visitor-Management-System/**
+
+Every push to `main` triggers [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml),
+which builds and publishes `dist/` to Pages. One-time repo setup:
+**Settings → Pages → Build and deployment → Source: _GitHub Actions_**.
+
+Three things make a Vite SPA work on Pages, all in
+[`vite.config.js`](vite.config.js) and [`src/main.jsx`](src/main.jsx):
+
+- **`base`** is the repo path, so built asset URLs resolve under the subpath. The
+  dev server stays at `/`; `vite preview` reports `command: "serve"` too, so it
+  is caught with `isPreview` rather than being left at the root.
+- **`basename={import.meta.env.BASE_URL}`** on the router, so links and the
+  asset paths agree in both environments.
+- **`dist/404.html`** is a copy of `index.html`, written by a small build plugin.
+  Pages has no SPA rewrite — an unknown path serves `404.html`, so shipping the
+  app there is what lets a deep link like `/reports` reach the router.
 
 ## Signing in
 

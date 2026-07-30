@@ -8,7 +8,9 @@ import "./styles/terminal.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <BrowserRouter>
+    {/* BASE_URL is "/" in dev and the repo path on Pages, so the router's
+        links and the built asset paths always agree. */}
+    <BrowserRouter basename={import.meta.env.BASE_URL}>
       <AppProvider>
         <App />
       </AppProvider>
