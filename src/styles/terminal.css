@@ -447,6 +447,10 @@ tr:hover .row-action { opacity: 1; }
 .btn-ghost:hover { background: var(--panel-2); }
 .btn-lg    { padding: 13px 18px; font-size: 14.5px; }
 .btn-block { width: 100%; }
+/* A primary action that has just become available. Carries the accent ring
+   unconditionally, because programmatic focus after a mouse click does not
+   reliably match :focus-visible. */
+.btn-primary.ready { box-shadow: 0 0 0 3px var(--accent-soft); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn:disabled:hover { background: var(--panel-3); }
 .btn-primary:disabled:hover { background: var(--accent); }

@@ -1,4 +1,4 @@
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Icon from "../components/Icon";
 import Avatar from "../components/Avatar";
@@ -114,6 +114,13 @@ export default function CheckIn() {
   const [errors, setErrors] = useState({});
   const [denied, setDenied] = useState(false);
   const [done, setDone] = useState(null);
+  const continueRef = useRef(null);
+
+  /* Choosing a visitor makes Continue the only thing left to do, so focus
+     lands on it — the accent ring is the highlight, and Enter carries on. */
+  useEffect(() => {
+    if (picked) continueRef.current?.focus();
+  }, [picked]);
 
   const needsAgreement = settings.nda || settings.health;
   const labels = useMemo(
@@ -267,13 +274,14 @@ export default function CheckIn() {
             {/* ---- step 0: find or create the visitor ---- */}
             {step === 0 && (
               <>
-                {!isNew && (
+                {/* Searching: the field, the matches, and the escape hatch. */}
+                {!isNew && !picked && (
                   <>
                     <Field label="Search the visitor master" icon="search"
                       hint="Type a mobile number or name — at least two characters.">
                       <input
                         value={query}
-                        onChange={e => { setQuery(e.target.value); setPicked(null); }}
+                        onChange={e => setQuery(e.target.value)}
                         placeholder="+8801… or Fatima"
                         autoFocus
                       />
@@ -282,9 +290,7 @@ export default function CheckIn() {
                     {query.trim().length >= 2 && (
                       <div style={{ marginBottom: 14 }}>
                         {matches.map(v => (
-                          <button key={v.visitorId}
-                            className={"method-card" + (picked?.visitorId === v.visitorId ? " on" : "")}
-                            onClick={() => setPicked(v)}>
+                          <button key={v.visitorId} className="method-card" onClick={() => setPicked(v)}>
                             <Avatar name={v.name} size={40} src={v.cardImage} />
                             <div className="method-body">
                               <div className="method-name trunc">{v.name}</div>
@@ -310,6 +316,28 @@ export default function CheckIn() {
                       <Icon name="plus" /> New visitor — not on record
                     </button>
                   </>
+                )}
+
+                {/* Picked: the list collapses to the one choice, so the only
+                    things left on screen are the decision and the way back. */}
+                {!isNew && picked && (
+                  <div className="rf">
+                    <label>Selected visitor</label>
+                    <div className="method-card on" style={{ cursor: "default" }}>
+                      <Avatar name={picked.name} size={40} src={picked.cardImage} />
+                      <div className="method-body">
+                        <div className="method-name trunc">{picked.name}</div>
+                        <div className="method-detail trunc">
+                          {picked.mobile} · {picked.organization || "no organization"}
+                        </div>
+                      </div>
+                      <Icon name="check" size={18} style={{ color: "var(--accent-2)", flex: "none" }} />
+                    </div>
+                    <button className="btn btn-ghost btn-block" style={{ marginTop: 9 }}
+                      onClick={() => setPicked(null)}>
+                      <Icon name="search" /> Choose a different visitor
+                    </button>
+                  </div>
                 )}
 
                 {isNew && (
@@ -348,7 +376,9 @@ export default function CheckIn() {
                   </>
                 )}
 
-                <button className="btn btn-primary btn-block btn-lg" style={{ marginTop: 4 }}
+                <button ref={continueRef}
+                  className={"btn btn-primary btn-block btn-lg" + (picked ? " ready" : "")}
+                  style={{ marginTop: 4 }}
                   disabled={!picked && !isNew}
                   onClick={() => {
                     if (!validateVisitor()) return;
